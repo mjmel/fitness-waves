@@ -11,33 +11,12 @@ import scipy.special
 
 
 
-@st.cache
-def get_cache_seed():
-	params = pd.DataFrame({'N':[100],'U':[0.01],'s':[0.01],'num_gen':[50],'seed':[1]})
-	params.to_csv('runparams.csv')
 
-	try:
-
-
-		return cache_seed()
-
-	except NameError:
-		return np.random.rand()
-
-st.text(get_cache_seed())
-
-@st.cache()
-def cache_seed():
-	return 4
-
-
-
-seed = 1
 
 
 #%%
 ###%%% bin first then display
-st.title('interactive evolution simulations')
+st.title('traveling fitness waves')
 st.text('Matthew Melissa, PhD Candidate at Harvard University')
 
 
@@ -110,10 +89,11 @@ def runsim(N,U,dfe,num_gen,seed):
 	sizes = np.zeros((int(2*N*U*num_gen),num_gen))
 	sizes[0,0] = N
 	fits =  np.array([1.0])
-	children = [()]
-	big_lineages = np.array([]).astype(int)
+	children = [[]]
+	parents = [()]
+	#big_lineages = np.array([]).astype(int)
 
-	progress_interval = num_gen/50
+	#progress_interval = num_gen/50
 	t=0
 	for t in range(num_gen-1):
 	    mean_fit = np.average(fits[extant_lineages],weights=sizes[extant_lineages,t])
@@ -124,26 +104,28 @@ def runsim(N,U,dfe,num_gen,seed):
 	        for k in range(new_lineages):
 	            lineages.append(lineages[j] + (np.random.randint(10**10),))
 	            extant_lineages = np.append(extant_lineages,len(lineages))
-	            children.append(())
-	            children[j] += (len(lineages)-1,)
+	            children.append([])
+	            children[j] += [len(lineages)-1]
+	            parents.append(())
+	            parents[-1] +=(j,)
 	            fits = np.append( fits,np.exp(dfe())*fits[j] )
 	            sizes[len(lineages)-1,t+1] = 1.0
 	            sizes[j,t+1] -= 1.0
 	            
 	    extant_lineages = extant_lineages[sizes[extant_lineages,t+1]>0]
 
-	    big_lineages = np.union1d(big_lineages,extant_lineages[sizes[extant_lineages,t+1]>=10])
+	    #big_lineages = np.union1d(big_lineages,extant_lineages[sizes[extant_lineages,t+1]>=10])
 
 
-	    if np.mod(t/2.0,progress_interval)==0 and t/progress_interval/2 <1:
-	    	bar.progress(t/progress_interval/2)
+	    #if np.mod(t/2.0,progress_interval)==0 and t/progress_interval/2 <1:
+	    	#bar.progress(t/progress_interval/2)
 
 
-	if len(big_lineages)==1:
-		big_lineages = np.arange(1,len(lineages))
+	#if len(big_lineages)==1:
+		#big_lineages = np.arange(1,len(lineages))
 
 
-	return big_lineages,children,sizes,fits
+	return children,parents,sizes[:len(children),:],fits
 
 def add_trads(children,sizes,lineage_no):
     if len(children[lineage_no])==0:
@@ -155,18 +137,47 @@ def add_trads(children,sizes,lineage_no):
         return sumsizess
 
 
+
+def add_trads_parents(children,parents,sizes):
+	sumsizes = np.copy(sizes)
+	no_children_pool = [i for i in range(len(children)) if len(children[i])==0]
+	while True:
+		for i in range(len(no_children_pool)):
+			rem_individual = no_children_pool.pop(0)
+			rem_parent = parents[rem_individual][0] 
+			sumsizes[rem_parent,:] += sumsizes[rem_individual,:]
+			children[rem_parent].remove(rem_individual)
+			if len(children[rem_parent]) == 0:
+				no_children_pool.append(rem_parent)
+
+		if no_children_pool==[0] or len(no_children_pool)==0:
+			break
+	return sumsizes[:,:]
+
+
+
+
+
+
 @st.cache(allow_output_mutation=True)
-def plot_trajectories(N,U,s,num_gen,big_lineages,children,sizes):
+def plot_trajectories(N,U,s,num_gen,children,sizes):
 	chart_data = pd.DataFrame([])
 	ki = 1
-	arrlist = [list(add_trads(children,sizes,k)) for k in big_lineages[1:]]
-	wide_df = pd.DataFrame(arrlist,columns=range(num_gen))
-	wide_df['lineage'] = wide_df.index.astype(str)
+	#arrlist = [list(add_trads(children,sizes,k)) for k in big_lineages[1:]]
+	#wide_df = pd.DataFrame(arrlist,columns=range(num_gen))
+
+
+	sumsizes = add_trads_parents(children,parents,sizes)
+	wide_df = pd.DataFrame(sumsizes,columns=range(num_gen))
+
+	wide_df['lineage'] = np.arange(len(fits)).astype(str)
+
 	chart_data = wide_df.melt(id_vars='lineage',var_name='generation',value_name='number individuals')
 	chart_data=chart_data[chart_data['number individuals']>0]
+	#chart_data = chart_data[chart_data['lineage']!='0']
 
 
-	gen_range = pd.DataFrame({'generation':np.linspace(0,num_gen,100).astype(int)})
+	gen_range = pd.DataFrame({'generation':np.linspace(0,num_gen,20).astype(int)})
 	c = alt.Chart(chart_data,width = 400).mark_line().encode(
 		x='generation:Q',
 
@@ -203,18 +214,19 @@ def plot_trajectories(N,U,s,num_gen,big_lineages,children,sizes):
 
 	layerChart = alt.layer(line,selectors,rules).properties(width=600,height=300)
 
-	df = pd.DataFrame(sizes[:len(fits),:],columns=range(num_gen),index=fits)
-	df['fitness'] = df.index
-	df_melt = df.melt(id_vars='fitness',var_name='generation',value_name='number')
+	df = pd.DataFrame(sizes[:,:],columns=range(num_gen))
+	#df['fitness'] = df.index
+	df['lineage'] = np.arange(len(fits)).astype(str)
+	df['fitness'] = fits
+	df_melt = df.melt(id_vars=['fitness','lineage'],var_name='generation',value_name='number')
 	df_melt = df_melt[df_melt.number>0].astype({'generation': 'int32'})
-
-	gen = 50
 
 
 
 	bchart = alt.Chart(df_melt,width = 600).mark_bar().encode(
     	x=alt.Y('fitness:Q', bin=alt.Bin(extent=[1, max(df['fitness'])], step=s)),
-    	y=alt.Y('number:Q', scale=alt.Scale(domain=(0, N)))).add_selection(nearest).transform_filter(nearest).interactive()
+    	y=alt.Y('number:Q', scale=alt.Scale(domain=(0, N))),
+    	color=alt.Color('lineage',legend=None)).add_selection(nearest).transform_filter(nearest).interactive()
 
 
 	concat_chart = (layerChart & bchart).configure_axis(labelFontSize=20,titleFontSize=20)
@@ -232,9 +244,9 @@ if st.sidebar.button('Run simulation'):
 	#params = pd.read_csv('runparams.csv')
 	#N,U,s,num_gen,seed = params['N'][0],params['U'][0],params['s'][0],params['num_gen'][0],params['seed'][0]
 
-	big_lineages,children,sizes,fits = runsim(N,U,dfe,num_gen,seed)
+	children,parents,sizes,fits = runsim(N,U,dfe,num_gen,seed)
 	bar.progress(50)
-	layerChart = plot_trajectories(N,U,s,num_gen,big_lineages,children,sizes)
+	layerChart = plot_trajectories(N,U,s,num_gen,children,sizes)
 	bar.progress(75)
 	st.altair_chart(layerChart  )
 	bar.progress(100)
