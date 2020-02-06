@@ -1,4 +1,5 @@
 import numpy as np
+import streamlit as st
 
 def runsim(N,U,s,num_gen):
 
@@ -27,8 +28,11 @@ def runsim(N,U,s,num_gen):
 	            
 	    extant_lineages = extant_lineages[sizes[extant_lineages,t+1]>0]
 
-	    big_lineages = np.union1d(big_lineages,extant_lineages[sizes[extant_lineages,t+1]>25])
+	    big_lineages = np.union1d(big_lineages,extant_lineages[sizes[extant_lineages,t+1]>=10])
+
+	if len(big_lineages)==1:
+		big_lineages = np.arange(1,len(lineages))
 
 
-	return big_lineages,children,sizes
+	return big_lineages,children,sizes,fits
 
