@@ -114,7 +114,7 @@ def plot_trajectories(N,num_gen,children,parents,sizes,assay_timepoints):
 
 	bchart = alt.Chart(df_melt,width = 600).mark_bar().encode(
     	x=alt.Y('fitness:Q', bin=alt.Bin(extent=[min(df['fitness']), max(df['fitness'])], step=step_size), title='fitness'),
-    	y=alt.Y('number:Q', scale=alt.Scale(domain=(0, N)), title='number of individuals'),
+    	y=alt.Y('sum(number):Q', scale=alt.Scale(domain=(0, N)), title='number of individuals'),
     	color=alt.Color('lineage',legend=None)).add_selection(nearest).transform_filter(nearest).interactive()
 
 
