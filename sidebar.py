@@ -50,6 +50,7 @@ def run_sidebar():
 
 
 	num_gen = st.sidebar.slider('how many generations?',min_value=20,max_value=10000,step=10,value=1000)
+	assay_interval = st.sidebar.slider('choose the assay interval',min_value=1,max_value=int(num_gen/10),step=1,value=10)
 
 
 	sbvals = np.linspace(0,4*sb,100)
@@ -158,5 +159,5 @@ def run_sidebar():
 		st.sidebar.altair_chart(cd)
 
 	
-	return N,Ub,Ud,sb,sd,dfe_b,dfe_d,num_gen
+	return N,Ub,Ud,sb,sd,dfe_b,dfe_d,num_gen,assay_interval
 

@@ -1,15 +1,18 @@
 import numpy as np
 import streamlit as st
 
+
+@st.cache(hash_funcs={np.ufunc:id},suppress_st_warning=True)
 def runsim(N,Ub,Ud,draw_b,draw_d,num_gen,assay_interval,seed):
 	latest_iteration = st.empty()
-	#lineages = [(1,)]
 	extant_lineages = np.array([0]).astype(int)
 	sizes = np.zeros((int(2*N*(Ub+Ud)*num_gen),num_gen))
 	sizes[0,0] = N
 	fits =  np.array([1.0])
 	children = [[]]
 	parents = [()]
+
+	assay_timepoints = np.arange(num_gen,step=assay_interval).astype(int)
 
 	t=0
 	for t in range(num_gen-1):
@@ -19,7 +22,6 @@ def runsim(N,Ub,Ud,draw_b,draw_d,num_gen,assay_interval,seed):
 	    for j in extant_lineages:
 	        new_lineages = np.random.binomial(sizes[j,t+1],Ub)
 	        for k in range(new_lineages):
-	            #lineages.append(lineages[j] + (np.random.randint(10**10),))
 	            fits = np.append( fits,np.exp(draw_b())*fits[j] )
 	            extant_lineages = np.append(extant_lineages,len(fits))
 	            children.append([])
@@ -31,7 +33,6 @@ def runsim(N,Ub,Ud,draw_b,draw_d,num_gen,assay_interval,seed):
 	    for j in extant_lineages:
 	    	new_lineages_d = np.random.binomial(sizes[j,t+1],Ud)
 	    	for k in range(new_lineages_d):
-	            #lineages.append(lineages[j] + (np.random.randint(10**10),))
 	            fits = np.append( fits,np.exp(-draw_d())*fits[j] )
 	            extant_lineages = np.append(extant_lineages,len(fits))
 	            children.append([])
@@ -40,11 +41,7 @@ def runsim(N,Ub,Ud,draw_b,draw_d,num_gen,assay_interval,seed):
 	            parents[-1] +=(j,)
 	            sizes[len(fits)-1,t+1] = 1.0
 	            sizes[j,t+1] -= 1.0
-	            
-	            
+	                        
 	    extant_lineages = extant_lineages[sizes[extant_lineages,t+1]>0]
 
-	assay_timepoints = np.arange(num_gen,step=assay_interval).astype(int)
 	return children,parents,sizes[:len(children),assay_timepoints],fits,assay_timepoints
-
-

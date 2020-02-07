@@ -8,80 +8,18 @@ import time
 import altair as alt
 import scipy.special
 from sidebar import run_sidebar
-
+from runsim import runsim
 
 #%%
-
-
-
-
-
 
 #%%
 ###%%% bin first then display
 st.title('traveling fitness waves')
 st.text('Matthew Melissa, PhD Candidate at Harvard University')
-st.markdown('modeling the interplay of **mutation**, **selection** and **random genetic drift** in shaping the course of evolution') 
+st.markdown('modeling the interplay of **mutation**, **selection** and **random genetic drift** in shaping the evolutionary dynamics of large populations') 
 
-N,Ub,Ud,sb,sd,draw_b,draw_d,num_gen = run_sidebar()
+N,Ub,Ud,sb,sd,draw_b,draw_d,num_gen,assay_interval = run_sidebar()
 
-def runsim(N,Ub,Ud,draw_b,draw_d,num_gen,seed):
-	latest_iteration = st.empty()
-	#lineages = [(1,)]
-	extant_lineages = np.array([0]).astype(int)
-	sizes = np.zeros((int(2*N*(Ub+Ud)*num_gen),num_gen))
-	sizes[0,0] = N
-	fits =  np.array([1.0])
-	children = [[]]
-	parents = [()]
-	#big_lineages = np.array([]).astype(int)
-
-	#progress_interval = num_gen/50
-	t=0
-	for t in range(num_gen-1):
-	    mean_fit = np.average(fits[extant_lineages],weights=sizes[extant_lineages,t])
-	    sizes[extant_lineages,t+1] = np.random.poisson(sizes[extant_lineages,t]*np.exp(np.array(fits[extant_lineages])-mean_fit)*np.exp(1-1/float(N)*np.sum(sizes[extant_lineages,t])))
-	    
-	    for j in extant_lineages:
-	        new_lineages = np.random.binomial(sizes[j,t+1],Ub)
-	        for k in range(new_lineages):
-	            #lineages.append(lineages[j] + (np.random.randint(10**10),))
-	            fits = np.append( fits,np.exp(draw_b())*fits[j] )
-	            extant_lineages = np.append(extant_lineages,len(fits))
-	            children.append([])
-	            children[j] += [len(fits)-1]
-	            parents.append(())
-	            parents[-1] +=(j,)
-	            sizes[len(fits)-1,t+1] = 1.0
-	            sizes[j,t+1] -= 1.0
-	    for j in extant_lineages:
-	    	new_lineages_d = np.random.binomial(sizes[j,t+1],Ud)
-	    	for k in range(new_lineages_d):
-	            #lineages.append(lineages[j] + (np.random.randint(10**10),))
-	            fits = np.append( fits,np.exp(-draw_d())*fits[j] )
-	            extant_lineages = np.append(extant_lineages,len(fits))
-	            children.append([])
-	            children[j] += [len(fits)-1]
-	            parents.append(())
-	            parents[-1] +=(j,)
-	            sizes[len(fits)-1,t+1] = 1.0
-	            sizes[j,t+1] -= 1.0
-	            
-	            
-	    extant_lineages = extant_lineages[sizes[extant_lineages,t+1]>0]
-
-	    #big_lineages = np.union1d(big_lineages,extant_lineages[sizes[extant_lineages,t+1]>=10])
-
-
-	    #if np.mod(t/2.0,progress_interval)==0 and t/progress_interval/2 <1:
-	    	#bar.progress(t/progress_interval/2)
-
-
-	#if len(big_lineages)==1:
-		#big_lineages = np.arange(1,len(lineages))
-
-
-	return children,parents,sizes[:len(children),:],fits
 
 def add_trads(children,sizes,lineage_no):
     if len(children[lineage_no])==0:
@@ -110,29 +48,28 @@ def add_trads_parents(children,parents,sizes):
 			break
 	return sumsizes[:,:]
 
-
-
-
-
-
-def plot_trajectories(N,num_gen,children,parents,sizes):
+def plot_trajectories(N,num_gen,children,parents,sizes,assay_timepoints):
 	chart_data = pd.DataFrame([])
 	ki = 1
-	#arrlist = [list(add_trads(children,sizes,k)) for k in big_lineages[1:]]
-	#wide_df = pd.DataFrame(arrlist,columns=range(num_gen))
-
 
 	sumsizes = add_trads_parents(children,parents,sizes)
-	wide_df = pd.DataFrame(sumsizes,columns=range(num_gen))
 
+	wide_df = pd.DataFrame(sumsizes,columns=assay_timepoints)
 	wide_df['lineage'] = np.arange(len(fits)).astype(str)
 
 	chart_data = wide_df.melt(id_vars='lineage',var_name='generation',value_name='number individuals')
-	chart_data=chart_data[chart_data['number individuals']>0]
-	#chart_data = chart_data[chart_data['lineage']!='0']
+	chart_data = chart_data[chart_data['number individuals']>0]
 
+	last_zero = np.argmax(sumsizes!=0,axis=1)-1
+	first_zero = sumsizes.shape[1] - (np.argmax(sumsizes[:,::-1]!=0,axis=1))
+	plot_last_zero = (last_zero>=0)
+	plot_first_zero = (first_zero<len(assay_timepoints))
+	last_zero_df = pd.DataFrame({'lineage':np.arange(len(fits))[plot_last_zero].astype(str),'generation':assay_timepoints[last_zero[plot_last_zero]],'number individuals':np.zeros(len(fits))[plot_last_zero]})
+	first_zero_df = pd.DataFrame({'lineage':np.arange(len(fits))[plot_first_zero].astype(str),'generation':assay_timepoints[first_zero[plot_first_zero]],'number individuals':np.zeros(len(fits))[plot_first_zero]})
+	chart_data = chart_data.append(last_zero_df)
+	chart_data = chart_data.append(first_zero_df)
 
-	gen_range = pd.DataFrame({'generation':np.linspace(0,num_gen,100).astype(int)})
+	gen_range = pd.DataFrame({'generation':assay_timepoints})
 	c = alt.Chart(chart_data,width = 400).mark_line().encode(
 		x='generation:Q',
 
@@ -149,15 +86,6 @@ def plot_trajectories(N,num_gen,children,parents,sizes):
 
 	nearest = alt.selection(type='single', nearest=True, on='mouseover',fields=['generation'], empty='none',init={'generation':0})
 
-
-	#slider = alt.binding_range(min=0, max=int(num_gen)-1, step=10, name='generation:')
-	#selector = alt.selection_single(name="generation", fields=['generation'],
-                                #bind=slider, init={'generation': 50})
-
-	# rules = alt.Chart(gen_range).mark_rule(color='gray').encode(
- #    	x='generation',
-	# 	).transform_filter(selector)
-
 	selectors = alt.Chart(gen_range).mark_point().encode(
     	x='generation',
     	opacity=alt.value(0),
@@ -169,7 +97,7 @@ def plot_trajectories(N,num_gen,children,parents,sizes):
 
 	layerChart = alt.layer(line,selectors,rules).properties(width=600,height=300)
 
-	df = pd.DataFrame(sizes[:,:],columns=range(num_gen))
+	df = pd.DataFrame(sizes[:,:],columns=assay_timepoints)
 	#df['fitness'] = df.index
 	df['lineage'] = np.arange(len(fits)).astype(str)
 	df['fitness'] = fits
@@ -198,17 +126,11 @@ def plot_trajectories(N,num_gen,children,parents,sizes):
 if st.sidebar.button('Run simulation'):
 	seed = np.random.rand()
 	bar = st.progress(0)
-	#params = pd.DataFrame({'N':[N],'U':[U],'s':[s],'num_gen':[num_gen],'seed':[seed]})
-	#params.to_csv('runparams.csv')
 
-
-	#params = pd.read_csv('runparams.csv')
-	#N,U,s,num_gen,seed = params['N'][0],params['U'][0],params['s'][0],params['num_gen'][0],params['seed'][0]
-
-	children,parents,sizes,fits = runsim(N,Ub,Ud,draw_b,draw_d,num_gen,seed)
+	children,parents,sizes,fits,assay_timepoints = runsim(N,Ub,Ud,draw_b,draw_d,num_gen,assay_interval,seed)
 	bar.progress(50)
 
-	layerChart = plot_trajectories(N,num_gen,children,parents,sizes)
+	layerChart = plot_trajectories(N,num_gen,children,parents,sizes,assay_timepoints)
 	bar.progress(75)
 	
 	imagine_mutations = st.empty()
@@ -222,7 +144,7 @@ if st.sidebar.button('Run simulation'):
 
 	imagine_mutations.markdown('Imagine sequencing the DNA of all the individuals in a population (say, of *E. coli* or influenza viruses). The colored lines below show how many individuals carry each mutation over time.')
 
-	imagine_measuring.markdown('One could also measure the reproductive ability, or fitness, of the population over time. Mouse over the upper plot to see how the population moves through "fitness space" as a *traveling wave*.')
+	imagine_measuring.markdown('One can also measure the reproductive ability, or fitness, of the population over time. Mouse over the upper plot to see how the population moves through "fitness space" as a *traveling wave*.')
 
 	st.markdown('During my PhD, I have used a combination of analytical theory and simulations to describe the rate at which a population adapts and the shape of its traveling fitness wave. I have analyzed how these and other quantities depend on the size of the population, its mutation rate, and the distribution of fitness effects of new mutations, with a focus on large microbial populations.')
 
