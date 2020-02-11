@@ -17,7 +17,7 @@ import opt_runsim as rs
 st.title('traveling fitness waves')
 st.text('Matthew Melissa, PhD Candidate at Harvard University')
 st.markdown('modeling the interplay of **mutation**, **selection** and **random genetic drift** in shaping the evolutionary dynamics of large populations') 
-st.text('test')
+st.text('testing')
 N,Ub,Ud,sb,sd,draw_b,draw_d,num_gen,assay_interval = run_sidebar()
 
 def add_trads(children,sizes,lineage_no):
