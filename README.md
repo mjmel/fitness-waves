@@ -11,7 +11,7 @@ After a simulation runs, the user can interactively visualize two aspects of the
 2. **Fitness distribution**: Plots the distribution of fitnesses in the population as a function of time. As a user mouses over the mutational trajectories plot, the fitness distribution at that time point is plotted as a bar chart. The bar chart is colored according to the mutations carried by the individuals represented.
 
 ## How to Run
-The app can be accessed at <http://fitness-waves.herokuapp.com>. Alternatively, the app can be run locally by [installing streamlit](https://docs.streamlit.io/), and then running ```streamlit run app.py```.
+The app can be accessed at <http://fitness-waves.herokuapp.com>. Alternatively, the app can be run locally by [installing streamlit](https://docs.streamlit.io/), cloning this repository and running ```streamlit run app.py```.
 
 ## Simulation Parameters
 Users specify the following simulation parameters using the sidebar:
