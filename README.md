@@ -7,8 +7,8 @@ In these simulations, individuals produce a random number of offspring based on 
 
 After a simulation runs, the user can interactively visualize two aspects of the population's evolution:
 
-1. **Mutational trajectories**: Plots the number of individuals carrying each mutation as a function of time. Each mutation is assigned a different color. 
-2. **Fitness distribution**: Plots the distribution of fitnesses in the population as a function of time. As a user mouses over the mutational trajectories plot, the fitness distribution at that time point is plotted as a bar chart. The bar chart is colored according to the mutations carried by the individuals represented.
+1. **Mutational Trajectories**: Plots the number of individuals carrying each mutation as a function of time. Each mutation is assigned a different color. 
+2. **Fitness Distribution**: Plots the distribution of fitnesses in the population as a function of time. As a user mouses over the mutational trajectories plot, the fitness distribution at that time point is plotted as a bar chart. The bar chart is colored according to the mutations carried by the individuals represented (using the same color scheme as in the Mutational Trajectories plot.
 
 ## How to Run
 The app can be accessed at <http://fitness-waves.herokuapp.com>. Alternatively, the app can be run locally by [installing streamlit](https://docs.streamlit.io/), cloning this repository and running ```streamlit run app.py```.
