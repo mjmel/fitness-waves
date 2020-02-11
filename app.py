@@ -7,8 +7,8 @@ import matplotlib.pyplot as plt
 import time 
 import altair as alt
 import scipy.special
-from sidebar import run_sidebar
-import opt_runsim as rs
+from modules.sidebar import run_sidebar
+import modules.opt_runsim as rs
 
 #%%
 
