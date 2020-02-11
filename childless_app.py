@@ -8,7 +8,7 @@ import time
 import altair as alt
 import scipy.special
 from sidebar import run_sidebar
-import opt_runsim as rs
+from childless_runsim import runsim
 
 #%%
 
@@ -19,6 +19,7 @@ st.text('Matthew Melissa, PhD Candidate at Harvard University')
 st.markdown('modeling the interplay of **mutation**, **selection** and **random genetic drift** in shaping the evolutionary dynamics of large populations') 
 
 N,Ub,Ud,sb,sd,draw_b,draw_d,num_gen,assay_interval = run_sidebar()
+
 
 def add_trads(children,sizes,lineage_no):
     if len(children[lineage_no])==0:
@@ -125,7 +126,7 @@ if st.sidebar.button('Run simulation'):
 	seed = np.random.rand()
 	bar = st.progress(0)
 
-	children,parents,sizes,fits,assay_timepoints = rs.runsim(N,Ub,Ud,draw_b,draw_d,num_gen,assay_interval,seed)
+	children,parents,sizes,fits,assay_timepoints = runsim(N,Ub,Ud,draw_b,draw_d,num_gen,assay_interval,seed)
 	bar.progress(50)
 
 	layerChart = plot_trajectories(N,num_gen,children,parents,sizes,assay_timepoints)
@@ -142,7 +143,7 @@ if st.sidebar.button('Run simulation'):
 
 	imagine_mutations.markdown('Imagine sequencing the DNA of all the individuals in a population (say, of *E. coli* or influenza viruses). The colored lines below show how many individuals carry each mutation over time.')
 
-	imagine_measuring.markdown('One can also measure the reproductive ability, or *fitness*, of the population over time. Mouse over the upper plot to see how the population moves through "fitness space" as a *traveling wave*.')
+	imagine_measuring.markdown('One can also measure the reproductive ability, or fitness, of the population over time. Mouse over the upper plot to see how the population moves through "fitness space" as a *traveling wave*.')
 
 	st.markdown('During my PhD, I have used a combination of analytical theory and simulations to describe the rate at which a population adapts and the shape of its traveling fitness wave. I have analyzed how these and other quantities depend on the size of the population, its mutation rate, and the distribution of fitness effects of new mutations, with a focus on large microbial populations.')
 

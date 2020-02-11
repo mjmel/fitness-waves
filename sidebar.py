@@ -6,7 +6,7 @@ import scipy.special
 
 def run_sidebar():
 
-	N = 10**st.sidebar.slider('choose a population size',min_value=2.0,max_value=4.0,step=0.01,value=3.2,format='10E%f')
+	N = 10**st.sidebar.slider('choose a population size',min_value=2.0,max_value=6.0,step=0.01,value=3.2,format='10E%f')
 
 	beneficial = st.sidebar.checkbox('beneficial mutations',value=True)
 	deleterious = st.sidebar.checkbox('deleterious mutations',value=False)
