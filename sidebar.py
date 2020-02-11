@@ -6,27 +6,27 @@ import scipy.special
 
 def run_sidebar():
 
-	N = 10**st.sidebar.slider('choose a population size',min_value=2.0,max_value=6.0,step=0.01,value=3.2,format='10E%f')
+	N = 10**st.sidebar.slider('choose a population size',min_value=2.0,max_value=6.0,step=0.01,value=3.0,format='10E%.1f')
 
 	beneficial = st.sidebar.checkbox('beneficial mutations',value=True)
 	deleterious = st.sidebar.checkbox('deleterious mutations',value=False)
 
 	if beneficial:
-		Ub = 10**st.sidebar.slider('choose a beneficial mutation rate',min_value=-5.0,max_value=-2.0,step=0.01,value=-3.0,format='10E%f')
+		Ub = 10**st.sidebar.slider('choose a beneficial mutation rate',min_value=-5.0,max_value=-2.0,step=0.01,value=-3.0,format='10E%.1f')
 	else:
 		Ub = 0
 	if deleterious:
-		Ud = 10**st.sidebar.slider('choose a deleterious mutation rate',min_value=-5.0,max_value=-2.0,step=0.01,value=-3.0,format='10E%f')
+		Ud = 10**st.sidebar.slider('choose a deleterious mutation rate',min_value=-5.0,max_value=-2.0,step=0.01,value=-3.0,format='10E%.1f')
 	else:
 		Ud = 0
 
 	if beneficial:
-		sb = 10**st.sidebar.slider('choose an average beneficial effect size',min_value=-4.0,max_value=-1.0,step=0.01,value=-2.0,format='10E%f')
+		sb = 10**st.sidebar.slider('choose an average beneficial effect size',min_value=-4.0,max_value=-1.0,step=0.01,value=-2.0,format='10E%.1f')
 	else:
 		sb = 0
 
 	if deleterious:
-		sd = 10**st.sidebar.slider('choose an average deleterious effect size',min_value=-4.0,max_value=-1.0,step=0.01,value=-2.0,format='10E%f')
+		sd = 10**st.sidebar.slider('choose an average deleterious effect size',min_value=-4.0,max_value=-1.0,step=0.01,value=-2.0,format='10E%.1f')
 	else:
 		sd = 0
 
