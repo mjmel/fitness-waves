@@ -108,7 +108,7 @@ def plot_trajectories(N,num_gen,children,parents,sizes,assay_timepoints):
 	elif Ud == 0:
 		step_size = sb
 	else:
-		step_size = np.min(sb,sd)
+		step_size = np.min([sb,sd])
 
 	bchart = alt.Chart(df_melt,width = 600).mark_bar().encode(
     	x=alt.Y('fitness:Q', bin=alt.Bin(extent=[min(df['fitness']), max(df['fitness'])], step=step_size), title='fitness'),
@@ -146,7 +146,7 @@ if st.sidebar.button('Run simulation'):
 
 	st.markdown('During my PhD, I have used a combination of analytical theory and simulations to describe the rate at which a population adapts and the shape of its traveling fitness wave. I have analyzed how these and other quantities depend on the size of the population, its mutation rate, and the distribution of fitness effects of new mutations, with a focus on large microbial populations.')
 
-	st.markdown('Source code and more details are available at <https://github.com/mjmel/evo-vis>.')
+	st.markdown('Source code and more details are available at <https://github.com/mjmel/fitness-waves>.')
 
 
 
