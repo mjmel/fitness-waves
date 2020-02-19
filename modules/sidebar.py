@@ -50,7 +50,7 @@ def run_sidebar():
 
 
 	num_gen = st.sidebar.slider('how many generations?',min_value=20,max_value=10000,step=10,value=1000)
-	assay_interval = st.sidebar.slider('choose the assay interval',min_value=1,max_value=int(num_gen/10),step=1,value=10)
+	assay_interval = st.sidebar.slider('choose the measurement interval',min_value=1,max_value=int(num_gen/10),step=1,value=10)
 
 
 	sbvals = np.linspace(0,4*sb,100)
